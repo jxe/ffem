@@ -28,8 +28,8 @@ authenticator.use(
       clientID,
       clientSecret,
       callbackURL: process.env.AUTH_CALLBACK_DOMAIN
-        ? `${process.env.AUTH_CALLBACK_DOMAIN}/api/auth/twitter/callback`
-        : "http://localhost:3000/api/auth/twitter/callback",
+        ? `${process.env.AUTH_CALLBACK_DOMAIN}/auth/twitter/callback`
+        : "http://localhost:3000/auth/twitter/callback",
       // In order to get user's email address, you need to configure your app permission.
       // See https://developer.twitter.com/en/docs/twitter-api/v1/accounts-and-users/manage-account-settings/api-reference/get-account-verify_credentials.
       includeEmail: true // Optional parameter. Default: false.
@@ -99,32 +99,38 @@ authenticator.use(
 
 async function registerTwitterUser(profile: any) {
   console.log('running twitter auth', profile)
-  const email = profile.emails && profile.emails[0]?.value
-  const name = profile.displayName
-  const twitterId = profile.id
-  const twitterName = profile.username
-  const photoUrl = `https://res.cloudinary.com/meaning-supplies/image/twitter/${twitterId}.jpg` // profile.photos && profile.photos[0]?.value
-  const nick = profile.name?.givenName
   const {
-    location,
+    email,
+    id_str: twitterId,
+    location: city,
+    screen_name: twitterName,
+    displayName: name,
     // description, url, followers_count, friends_count, listed_count, profile_image_url, profile_banner_url
-  } = profile._json
-  const city = location
+  } = profile
+  const photoUrl = `https://res.cloudinary.com/meaning-supplies/image/twitter/${twitterId}.jpg` // profile.photos && profile.photos[0]?.value
   const handle = twitterName
   let user: User
-  if (email) {
-    user = await db.user.upsert({
-      where: { email },
-      create: { handle, email, name, photoUrl, twitterId, twitterName, nick, city },
-      update: { email, twitterId, twitterName, city },
-    })
-  } else {
-    user = await db.user.upsert({
-      where: { twitterId },
-      create: { handle, name, photoUrl, twitterId, twitterName, city },
-      update: { twitterId, twitterName, city },
-    })
+  try {
+    if (email) {
+      console.log('getting user via email', email)
+      user = await db.user.upsert({
+        where: { email },
+        create: { handle, email, name, photoUrl, twitterId, twitterName, city },
+        update: { email, twitterId, twitterName, city },
+      })
+    } else {
+      console.log('getting user via twitterId', twitterId)
+      user = await db.user.upsert({
+        where: { twitterId },
+        create: { handle, name, photoUrl, twitterId, twitterName, city },
+        update: { twitterId, twitterName, city },
+      })
+    }
+  } catch (e) {
+    console.log(e)
+    throw (e)
   }
+  console.log('got user', user!)
   // if (!email) {
   //     // This can happen if you haven't enabled email access in your twitter app permissions
   //     return done(new Error("Twitter OAuth response doesn't have email."))

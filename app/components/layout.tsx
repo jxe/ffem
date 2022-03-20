@@ -1,6 +1,8 @@
 import * as Collapsible from "@radix-ui/react-collapsible"
 import { Checkbox } from "melements"
 import { ReactNode } from "react"
+import { Form } from "remix"
+import { LoaderData } from "~/routes"
 import { keyframes, styled } from "~/styles/stitches.config"
 
 export const Description = styled('div', {
@@ -8,11 +10,35 @@ export const Description = styled('div', {
   fontSize: '$3',
 })
 
-export const Page = styled('div', {
+export const PageContainer = styled('div', {
   maxWidth: '600px',
   margin: '$1 auto',
   padding: '$1',
 })
+
+function LoginButton({ me }: { me: LoaderData['me'] }) {
+  if (me) return <span>{me.name}
+    <Form method="post" action="/auth/logout">
+      <button>Logout</button>
+    </Form>
+  </span>
+  else return <Form method="post" action="/auth/twitter">
+    <button>Login</button>
+  </Form>
+}
+
+export function Page({ me, children }: { children: ReactNode, me: LoaderData['me'] }) {
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <LoginButton me={me} />
+      </div>
+      <PageContainer>
+        {children}
+      </PageContainer>
+    </>
+  )
+}
 
 export function smallCloudinaryImg(src: string) {
   if (!src.includes("cloudinary.com")) return src

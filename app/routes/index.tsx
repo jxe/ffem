@@ -1,6 +1,5 @@
 import { ActionFunction, Form, json, Link, LinksFunction, LoaderFunction, useLoaderData } from "remix"
 import { db } from "~/services/db.server"
-import { getSession } from "~/services/session.server"
 import { TwitterLogoIcon } from '@radix-ui/react-icons'
 import { BoldedList, Checkbox, Dialog, DialogContent, DialogTrigger } from 'melements'
 import { Button } from 'melements/dist/components/Button'
@@ -9,8 +8,9 @@ import ForWhat from '~/components/ffwhat.mdx'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { Row, Avatar, smallCloudinaryImg, Description, Page, Label, CheckboxRow, CheckboxList } from "~/components/layout"
 import { styled } from "~/styles/stitches.config"
+import { authenticator } from "~/services/auth.server"
 
-type LoaderData = Awaited<ReturnType<typeof loaderData>>
+export type LoaderData = Awaited<ReturnType<typeof loaderData>>
 
 export const links: LinksFunction = () => [
   {
@@ -19,13 +19,11 @@ export const links: LinksFunction = () => [
   }
 ]
 
-async function loaderData() {
-  const session = await getSession()
+async function loaderData({ request }: { request: Request }) {
+  let session = await authenticator.isAuthenticated(request)
   return {
-    me: session.data['userId'] ? await db.user.findUnique({
-      where: {
-        id: session.data['userId']
-      },
+    me: session?.userId ? await db.user.findUnique({
+      where: { id: session.userId },
     }) : null,
     directory: await db.user.findMany({
       where: { spacemaker: true },
@@ -46,16 +44,24 @@ async function loaderData() {
 }
 
 export const action: ActionFunction = async ({ request }) => {
+  const session = await authenticator.isAuthenticated(request)
+  if (!session) throw new Error("Sign in!")
   const body = await request.formData();
   console.log(body)
+  await db.user.update({
+    where: { id: session.userId },
+    data: {
+      name: body.get("name") as string,
+      city: body.get("city") as string,
+      makes: body.getAll("makes").join(' '),
+      spacemaker: true,
+      // pledge: body.getAll("pledge") as string[],
+    }
+  })
   return null
-  // const todo = await fakeCreateTodo({
-  //   title: body.get("title"),
-  // });
-  // return redirect(`/todos/${todo.id}`);
 }
 
-export const loader: LoaderFunction = async () => json<LoaderData>(await loaderData())
+export const loader: LoaderFunction = async ({ request }) => json<LoaderData>(await loaderData({ request }))
 
 export function headers() {
   return {
@@ -77,14 +83,6 @@ export function SpacemakerListing({ user }: { user: LoaderData['directory'][0] }
       </div>
     </div>
   </Row>
-}
-
-function LoginButton() {
-  const { me } = useLoaderData<LoaderData>()
-  if (me) return <span>{me.name}</span>
-  else return <Form method="post" action="/auth/twitter">
-    <button>Login</button>
-  </Form>
 }
 
 function Editor() {
@@ -183,8 +181,7 @@ export default function Index() {
   const { directory, me } = useLoaderData<LoaderData>()
   const filteredUsers = directory.filter(u => u.makes?.length)
   return (
-    <Page>
-      <LoginButton />
+    <Page me={me}>
       <Card>
         <TheFight />
 
@@ -215,7 +212,11 @@ export default function Index() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <Editor />
+            {me ? <Editor /> :
+              <Form method="post" action="/auth/twitter">
+                <button>Login via twitter</button>
+              </Form>
+            }
           </DialogContent>
         </Dialog>
       </Row>
