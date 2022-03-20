@@ -5,6 +5,7 @@ import { TwitterLogoIcon } from '@radix-ui/react-icons'
 import { BoldedList, Checkbox, Dialog, DialogContent, DialogTrigger } from 'melements'
 import { Button } from 'melements/dist/components/Button'
 import TheFight from '~/components/thefight.mdx'
+import ForWhat from '~/components/ffwhat.mdx'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { Row, Avatar, smallCloudinaryImg, Description, Page, Label, CheckboxRow, CheckboxList } from "~/components/layout"
 
@@ -162,6 +163,21 @@ export default function Index() {
     <Page>
       <Description css={{ textAlign: "center", marginY: "10px" }}>{directory.length} have signed</Description>
       <TheFight />
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button>
+            Read more
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <div style={{ overflowY: "auto", height: "calc(100vh - 200px)" }}>
+            <ForWhat />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
       <Row css={{ justifyContent: "center", padding: "24px 0px 48px" }}>
         <Dialog>
           <DialogTrigger asChild>
