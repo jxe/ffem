@@ -8,6 +8,7 @@ import TheFight from '~/components/thefight.mdx'
 import ForWhat from '~/components/ffwhat.mdx'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { Row, Avatar, smallCloudinaryImg, Description, Page, Label, CheckboxRow, CheckboxList } from "~/components/layout"
+import { styled } from "~/styles/stitches.config"
 
 type LoaderData = Awaited<ReturnType<typeof loaderData>>
 
@@ -156,33 +157,52 @@ function Editor() {
   )
 }
 
+const Card = styled('div', {
+  background: "#ddd",
+  borderRadius: "8px",
+  padding: "0px 16px 16px",
+  margin: "8px 0px 8px",
+  // boxShadow: "0px 0px 8px rgba(0,0,0,0.1)",
+})
+
+const ButttonRow = styled('div', {
+  display: "flex",
+  gap: "8px",
+  justifyContent: "end",
+})
+
 export default function Index() {
   const { directory, me } = useLoaderData<LoaderData>()
   const filteredUsers = directory.filter(u => u.makes?.length)
   return (
     <Page>
-      <Description css={{ textAlign: "center", marginY: "10px" }}>{directory.length} have signed</Description>
-      <TheFight />
+      <Card>
+        <TheFight />
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>
-            Read more
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <div style={{ overflowY: "auto", height: "calc(100vh - 200px)" }}>
-            <ForWhat />
-          </div>
-        </DialogContent>
-      </Dialog>
+        <Dialog>
+          <ButttonRow>
+            <DialogTrigger asChild>
+              <Button>
+                Read more
+              </Button>
+            </DialogTrigger>
+          </ButttonRow>
+          <DialogContent>
+            <div style={{ overflowY: "auto", height: "calc(100vh - 200px)" }}>
+              <ForWhat />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </Card>
 
-
-      <Row css={{ justifyContent: "center", padding: "24px 0px 48px" }}>
+      <Row css={{ justifyContent: "center", padding: "48px 0px 24px" }}>
+        <div style={{ fontSize: "24px" }}>
+          <b>{directory.length} people</b> are fighting for meaning
+        </div>
         <Dialog>
           <DialogTrigger asChild>
             <Button>
-              {me?.spacemaker ? "Edit your info" : "Join the fight!"}
+              {me?.spacemaker ? "Edit your info" : "Join them!"}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -195,7 +215,7 @@ export default function Index() {
           <SpacemakerListing key={u.id} user={u} />
         ))}
       </div>
-      <div style={{ color: "#666", flex: 3, marginTop: "32px", paddingTop: "16px", borderTop: "solid 1px #ccc" }}>
+      <div style={{ color: "#666", flex: 3, marginTop: "64px" }}>
         This directory is maintained by
         <ul>
           <li><a target="_" href="https://twitter.com/edelwax">Joe Edelman</a>
