@@ -1,4 +1,4 @@
-import { ActionFunction, Form, json, LinksFunction, LoaderFunction, useLoaderData } from "remix"
+import { ActionFunction, Form, json, Link, LinksFunction, LoaderFunction, useLoaderData } from "remix"
 import { db } from "~/services/db.server"
 import { getSession } from "~/services/session.server"
 import { TwitterLogoIcon } from '@radix-ui/react-icons'
@@ -77,6 +77,14 @@ export function SpacemakerListing({ user }: { user: LoaderData['directory'][0] }
       </div>
     </div>
   </Row>
+}
+
+function LoginButton() {
+  const { me } = useLoaderData<LoaderData>()
+  if (me) return <span>{me.name}</span>
+  else return <Form method="post" action="/auth/twitter">
+    <button>Login</button>
+  </Form>
 }
 
 function Editor() {
@@ -176,6 +184,7 @@ export default function Index() {
   const filteredUsers = directory.filter(u => u.makes?.length)
   return (
     <Page>
+      <LoginButton />
       <Card>
         <TheFight />
 
