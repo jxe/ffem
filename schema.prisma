@@ -18,6 +18,7 @@ model User {
   photoUrl       String?
   city           String?
   makes          String?
+  pledge         String[]
   spacemaker     Boolean    @default(false)
   oathSigner     Boolean    @default(false)
   handle         String     @unique

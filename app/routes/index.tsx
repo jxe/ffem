@@ -55,7 +55,7 @@ export const action: ActionFunction = async ({ request }) => {
       city: body.get("city") as string,
       makes: body.getAll("makes").join(' '),
       spacemaker: true,
-      // pledge: body.getAll("pledge") as string[],
+      pledge: body.getAll("pledge") as string[],
     }
   })
   return null
@@ -87,8 +87,9 @@ export function SpacemakerListing({ user }: { user: LoaderData['directory'][0] }
 
 function Editor() {
   const { me } = useLoaderData<LoaderData>()
+  console.log('me', me)
   const makes = me?.makes?.trim()?.split(' ')?.map(x => x.replace('-', ' ')) || [];
-  const pledge: string[] = []
+  const pledge: string[] = me?.pledge || [];
   return (
     <div style={{ overflowY: "scroll", height: "calc(100vh - 200px)" }}>
       <Form method="post" replace style={{ display: "grid" }}>
