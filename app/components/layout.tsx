@@ -2,7 +2,7 @@ import * as Collapsible from "@radix-ui/react-collapsible"
 import { Checkbox } from "melements"
 import { ReactNode } from "react"
 import { Form } from "remix"
-import { LoaderData } from "~/routes"
+import { LoaderData } from "~/routes/__directory"
 import { keyframes, styled } from "~/styles/stitches.config"
 
 export const Description = styled('div', {

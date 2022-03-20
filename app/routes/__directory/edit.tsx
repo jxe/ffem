@@ -1,47 +1,12 @@
-import { ActionFunction, Form, json, Link, LinksFunction, LoaderFunction, useLoaderData } from "remix"
+import { ActionFunction, Form, redirect, useLoaderData, useMatches } from "remix"
 import { db } from "~/services/db.server"
-import { TwitterLogoIcon } from '@radix-ui/react-icons'
-import { BoldedList, Checkbox, Dialog, DialogContent, DialogTrigger } from 'melements'
+import { Checkbox } from 'melements'
 import { Button } from 'melements/dist/components/Button'
-import TheFight from '~/components/thefight.mdx'
-import ForWhat from '~/components/ffwhat.mdx'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { Row, Avatar, smallCloudinaryImg, Description, Page, Label, CheckboxRow, CheckboxList } from "~/components/layout"
+import { Description, Label, CheckboxRow, CheckboxList } from "~/components/layout"
 import { styled } from "~/styles/stitches.config"
 import { authenticator } from "~/services/auth.server"
-
-export type LoaderData = Awaited<ReturnType<typeof loaderData>>
-
-export const links: LinksFunction = () => [
-  {
-    rel: 'stylesheet',
-    href: '/global.css',
-  }
-]
-
-async function loaderData({ request }: { request: Request }) {
-  let session = await authenticator.isAuthenticated(request)
-  return {
-    me: session?.userId ? await db.user.findUnique({
-      where: { id: session.userId },
-    }) : null,
-    directory: await db.user.findMany({
-      where: { spacemaker: true },
-      select: {
-        id: true,
-        name: true,
-        photoUrl: true,
-        twitterId: true,
-        twitterName: true,
-        makes: true,
-        city: true,
-      },
-      orderBy: {
-        name: "asc",
-      }
-    })
-  }
-}
+import { LoaderData } from "../__directory"
 
 export const action: ActionFunction = async ({ request }) => {
   const session = await authenticator.isAuthenticated(request)
@@ -58,35 +23,17 @@ export const action: ActionFunction = async ({ request }) => {
       pledge: body.getAll("pledge") as string[],
     }
   })
-  return null
+  return redirect("/")
 }
 
-export const loader: LoaderFunction = async ({ request }) => json<LoaderData>(await loaderData({ request }))
+export default function Editor() {
+  const matches = useMatches()
+  const me: LoaderData['me'] = matches.find(x => x.data && "me" in x.data)?.data["me"]
 
-export function headers() {
-  return {
-    "Cache-Control": 'public, s-maxage=10, stale-while-revalidate=3600'
-  };
-}
+  if (!me) return <Form method="post" action="/auth/twitter">
+    <button>Login via twitter</button>
+  </Form>
 
-
-
-export function SpacemakerListing({ user }: { user: LoaderData['directory'][0] }) {
-  const makes = user.makes?.trim()?.split(' ')?.map(x => x.replace('-', ' ')) || [];
-  return <Row>
-    <Avatar src={smallCloudinaryImg(user.photoUrl!)} />
-    <div style={{ flex: "auto", display: "grid" }}>
-      <div><b>{user.name}</b> fights by making <b>exploratory</b> <BoldedList words={makes} /></div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-        <Description>{user.city}</Description>
-        {user.twitterId ? <a href={`https://twitter.com/${user.twitterName}`} target="_blank" rel="noopener noreferrer"><TwitterLogoIcon /></a> : null}
-      </div>
-    </div>
-  </Row>
-}
-
-function Editor() {
-  const { me } = useLoaderData<LoaderData>()
   console.log('me', me)
   const makes = me?.makes?.trim()?.split(' ')?.map(x => x.replace('-', ' ')) || [];
   const pledge: string[] = me?.pledge || [];
@@ -161,81 +108,5 @@ function Editor() {
         <button type="submit">{me?.spacemaker ? "Update" : "Sign"}</button>
       </Form>
     </div>
-  )
-}
-
-const Card = styled('div', {
-  background: "#ddd",
-  borderRadius: "8px",
-  padding: "0px 16px 16px",
-  margin: "8px 0px 8px",
-  // boxShadow: "0px 0px 8px rgba(0,0,0,0.1)",
-})
-
-const ButttonRow = styled('div', {
-  display: "flex",
-  gap: "8px",
-  justifyContent: "end",
-})
-
-export default function Index() {
-  const { directory, me } = useLoaderData<LoaderData>()
-  const filteredUsers = directory.filter(u => u.makes?.length)
-  return (
-    <Page me={me}>
-      <Card>
-        <TheFight />
-
-        <Dialog>
-          <ButttonRow>
-            <DialogTrigger asChild>
-              <Button>
-                Read more
-              </Button>
-            </DialogTrigger>
-          </ButttonRow>
-          <DialogContent>
-            <div style={{ overflowY: "auto", height: "calc(100vh - 200px)" }}>
-              <ForWhat />
-            </div>
-          </DialogContent>
-        </Dialog>
-      </Card>
-
-      <Row css={{ justifyContent: "center", padding: "48px 0px 24px" }}>
-        <div style={{ fontSize: "24px" }}>
-          <b>{directory.length} people</b> are fighting for meaning
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              {me?.spacemaker ? "Edit your info" : "Join them!"}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            {me ? <Editor /> :
-              <Form method="post" action="/auth/twitter">
-                <button>Login via twitter</button>
-              </Form>
-            }
-          </DialogContent>
-        </Dialog>
-      </Row>
-      <div style={{ display: "grid", gap: "8px", marginTop: "16px" }}>
-        {filteredUsers.map((u) => (
-          <SpacemakerListing key={u.id} user={u} />
-        ))}
-      </div>
-      <div style={{ color: "#666", flex: 3, marginTop: "64px" }}>
-        This directory is maintained by
-        <ul>
-          <li><a target="_" href="https://twitter.com/edelwax">Joe Edelman</a>
-          </li>
-          <li> <a target="_" href="https://sfsd.io">the School for Social Design</a> (a training program for Spacemakers) </li>
-          <li> and <a target="_" href="https://www.notion.so/humsys/Meaning-Economy-Working-Group-64e0dd86028943389a2ee1d2675c381c">the Meaning Economy Working Group</a></li>
-        </ul>
-        Get in touch with suggestions!
-      </div>
-    </Page>
   )
 }
