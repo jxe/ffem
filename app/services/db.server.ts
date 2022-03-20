@@ -1,3 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-let db = new PrismaClient();
+
+declare global {
+  var prisma: PrismaClient
+}
+
+if (!global.prisma) global.prisma = new PrismaClient()
+let db = global.prisma
 export { db };

@@ -1,0 +1,9 @@
+html, body {
+  font-family: system-ui, sans-serif;
+}
+
+p {
+  line-height: 1.6;
+  text-align: justify;
+  hyphens: auto;
+}
