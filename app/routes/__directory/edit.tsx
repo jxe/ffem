@@ -7,6 +7,7 @@ import { Description, Label, CheckboxRow, CheckboxList } from "~/components/layo
 import { styled } from "~/styles/stitches.config"
 import { authenticator } from "~/services/auth.server"
 import { LoaderData } from "../__directory"
+import { SlideyModal } from "~/components/SlideyModal"
 
 export const action: ActionFunction = async ({ request }) => {
   const session = await authenticator.isAuthenticated(request)
@@ -38,19 +39,9 @@ export default function Editor() {
   const makes = me?.makes?.trim()?.split(' ')?.map(x => x.replace('-', ' ')) || [];
   const pledge: string[] = me?.pledge || [];
   return (
-    <div style={{ overflowY: "scroll", height: "calc(100vh - 200px)" }}>
-      <Form method="post" replace style={{ display: "grid" }}>
-        <input type="text" name="name" defaultValue={me?.name!} placeholder="Name" />
-        <input type="text" name="city" defaultValue={me?.city!} placeholder="Name" />
-
-        {/* <FlexRow alignItems="baseline" justifyContent="start" style={{ margin: "8pt 0 16pt", gap: "8pt", color: "#666" }}>
-                Include me in the list!
-                <Toggle disabled={!user || isLoading} checked={user?.spacemaker} onChange={async (e) =>
-                  await editmeMut({ spacemaker: e.target.checked })
-                } />
-              </FlexRow> */}
-
-        <CheckboxList>
+    <Form method="post" replace>
+      <SlideyModal>
+        <div>
           <Collapsible.Root>
             <Label htmlFor="spaces" wide>
               <Collapsible.Trigger asChild>
@@ -95,18 +86,31 @@ export default function Editor() {
               </div>
             </Collapsible.CollapsibleContent>
           </Collapsible.Root>
+        </div>
+        <div>
+          <CheckboxList>
 
-          <CheckboxRow name="pledge" id="feelings" checked={pledge} wide>
-            <b>I'll to look for wisdom in my feelings, and those around me.</b> I'll find others who do the same. We’ll identify each other’s sources of meaning and hold them sacred.
-          </CheckboxRow>
-          <CheckboxRow name="pledge" id="norms" checked={pledge} wide>
-            <b>I'll avoid universalizing norms and ideologies</b>. We'll form groups encouraging one another to live each by our own, divergent wisdom and character. We'll refrain from pushing towards one ideal character we think everyone should be like.
-          </CheckboxRow>
+            <CheckboxRow name="pledge" id="feelings" checked={pledge} wide>
+              <b>I'll to look for wisdom in my feelings, and those around me.</b> I'll find others who do the same. We’ll identify each other’s sources of meaning and hold them sacred.
+            </CheckboxRow>
+          </CheckboxList>
 
+        </div>
+        <div>
 
-        </CheckboxList>
-        <button type="submit">{me?.spacemaker ? "Update" : "Sign"}</button>
-      </Form>
-    </div>
+          <CheckboxList>
+
+            <CheckboxRow name="pledge" id="norms" checked={pledge} wide>
+              <b>I'll avoid universalizing norms and ideologies</b>. We'll form groups encouraging one another to live each by our own, divergent wisdom and character. We'll refrain from pushing towards one ideal character we think everyone should be like.
+            </CheckboxRow>
+
+            <input type="text" name="name" defaultValue={me?.name!} placeholder="Name" />
+            <input type="text" name="city" defaultValue={me?.city!} placeholder="Name" />
+            <button type="submit">{me?.spacemaker ? "Update" : "Sign"}</button>
+
+          </CheckboxList>
+        </div>
+      </SlideyModal>
+    </Form>
   )
 }

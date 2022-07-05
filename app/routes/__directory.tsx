@@ -69,8 +69,9 @@ export function SpacemakerListing({ user }: { user: LoaderData['directory'][0] }
 const Card = styled('div', {
   background: "#ddd",
   borderRadius: "8px",
-  padding: "0px 16px 16px",
+  padding: "0.1px 16px 16px",
   margin: "8px 0px 8px",
+  boxModel: "border-box",
   // boxShadow: "0px 0px 8px rgba(0,0,0,0.1)",
 })
 
@@ -89,6 +90,7 @@ export default function Index() {
   const filteredUsers = directory.filter(u => u.makes?.length)
   return (
     <Page me={me}>
+      <h2>The Fight for Everyday Meaning</h2>
       <Card>
         <TheFight />
         <Dialog>
